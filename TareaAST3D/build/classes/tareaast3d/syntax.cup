@@ -1,0 +1,92 @@
+//codigo usuario
+package tareaast3d;
+import java_cup.runtime.Symbol;
+import java.util.ArrayList;
+import java.util.Stack;
+import tareaast3d.Quadruple;
+import tareaast3d.TableQuadruple;
+
+//Codigo para el parser, variables, metodos
+parser code
+{:
+    //codigo
+    TableQuadruple table = new TableQuadruple();
+
+	public void syntax_error(Symbol s) {
+		System.out.println("ERROR: Columna: "+(s.left+1)+", Fila: "+(s.right+1)+", Token: "+s.value);
+	}
+
+	public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+		System.out.println("ERRORr: Columna: "+(s.left+1)+", Fila: "+(s.right+1)+", Token: "+s.value);
+	}
+
+:}
+
+//Coidgo para las acciones gramaticales
+
+action code
+{:
+    
+:}
+
+//Declaraciones 
+terminal pa_a, pa_c, punto_coma;
+terminal mas, menos, por, div;
+terminal igual, identificador;
+terminal numero, decimal;
+
+
+
+// declaracion no terminales
+non terminal INICIO, CODIGO, STRUCT_ASIGNACION_VAR, VALOR_DATA, OPERACION_ARITMETICA;
+ 
+//presedencia de menor a mayor
+
+//Presedencia operadores matematicos
+precedence left mas, menos;
+precedence left div, por;
+
+
+
+start with INICIO;
+
+//Reglas Semanticas
+
+
+INICIO ::= CODIGO:a {: System.out.println(table.getText3D()); RESULT = table.getText3D();:};
+
+CODIGO ::=   CODIGO:a STRUCT_ASIGNACION_VAR:b {: table.addQuadrupleJump(); :}
+            |STRUCT_ASIGNACION_VAR:a {: table.addQuadrupleJump(); :};
+
+STRUCT_ASIGNACION_VAR ::= identificador:a igual OPERACION_ARITMETICA:b punto_coma {:
+                            table.addQuadrupleAsig("=", b.toString(), a.toString());
+                            RESULT = "t"+table.getCountT();
+                        :};
+
+
+VALOR_DATA ::= 	 numero:a {: RESULT = a.toString(); :}
+                |decimal:a {: RESULT = a.toString(); :}
+		|identificador:a {: RESULT = a.toString(); :};
+
+OPERACION_ARITMETICA ::= OPERACION_ARITMETICA:a mas OPERACION_ARITMETICA:b {:
+                            table.addQuadrupleArith("+", a.toString() , b.toString());
+                            RESULT = "t"+table.getCountT();
+                        :}
+			|OPERACION_ARITMETICA:a menos OPERACION_ARITMETICA:b {:
+                            table.addQuadrupleArith("-", a.toString() , b.toString());
+                            RESULT = "t"+table.getCountT();
+                        :}
+			|OPERACION_ARITMETICA:a por OPERACION_ARITMETICA:b {: 
+                            table.addQuadrupleArith("*", a.toString() , b.toString());
+                            RESULT = "t"+table.getCountT();
+                        :}
+			|OPERACION_ARITMETICA:a div OPERACION_ARITMETICA:b {:
+                            table.addQuadrupleArith("/", a.toString() , b.toString());
+                            RESULT = "t"+table.getCountT();
+                        :}
+                        |menos OPERACION_ARITMETICA:a {:
+                            table.addQuadrupleEnos("enos", "-"+a.toString());
+                            RESULT = "t"+table.getCountT();
+                        :}
+			|pa_a OPERACION_ARITMETICA:a pa_c {: RESULT = a.toString(); :}
+			|VALOR_DATA:a {: RESULT = a.toString(); :};
